@@ -603,7 +603,7 @@ class CALPADSClient:
 
             return success
 
-    def download_extract(self, lea_code, file_name=None, timeout=60, poll=3000, return_bytes=False):
+    def download_extract(self, lea_code, file_name=None, timeout=600, poll=3000, return_bytes=False):
         """
         Download the file and give it the provided file_name.
 
