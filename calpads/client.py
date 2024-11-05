@@ -603,7 +603,7 @@ class CALPADSClient:
 
             return success
 
-    def download_extract(self, lea_code, file_name=None, timeout=60, poll=10, return_bytes=False):
+    def download_extract(self, lea_code, file_name=None, timeout=600, poll=3000, return_bytes=False):
         """
         Download the file and give it the provided file_name.
 
@@ -639,13 +639,18 @@ class CALPADSClient:
                 #Currently only pulling the first result to check against, assuming it's the latest
                 if result[0]['ExtractStatus'] == 'Complete':
                     extract_request_id = result[0]['ExtractRequestID']
-                    self.log.info("Found an extract request ID")
+                    self.log.info("Found an extract request ID "+extract_request_id)
                     break
                 #Take a breather
                 time.sleep(poll)
             if extract_request_id and not return_bytes:
                 with open(file_name, 'wb') as f:
-                    f.write(self._get_extract_bytes(extract_request_id))
+                    for attempt in range(5):
+                        try:
+                            f.write(self._get_extract_bytes(extract_request_id))
+                        except:
+                            print("Retrying "+extract_request_id)
+                            time.sleep(5)
                     return True
             elif extract_request_id and return_bytes:
                 return self._get_extract_bytes(extract_request_id)
@@ -819,10 +824,12 @@ class CALPADSClient:
         response_root = etree.fromstring(self.visit_history[-1].text,
                                     etree.HTMLParser(encoding='utf8'))
         return response_root
+
     def _get_extract_bytes(self, extract_request_id):
         """Get the extract bytes by extract_request_id. Returns bytes."""
         self.session.get(urljoin(self.host, f'/Extract/DownloadLink?ExtractRequestID={extract_request_id}'))
         return self.visit_history[-1].content
+
 
     def _select_lea(self, lea_code):
         """Specifies the context of the requests to the provided lea_code.

@@ -1,21 +1,12 @@
 import calpads
-import logging
 
 from google.cloud import storage
 
-def write_read(bucket_name):
-
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-
-
 from calpads.client import CALPADSClient
 
-def handler():
 
-    cc = CALPADSClient(username='data@cwclosangeles.org', password='123!')
-
-    logging.getLogger().setLevel(logging.DEBUG)
+def handler(request):
+    cc = CALPADSClient(username='data@cwclosangeles.org', password='CWCla2425!')
 
     # report and school lists we will loop through
     report_list = ['8.1', '8.1a', '5.7']
@@ -201,10 +192,16 @@ def handler():
                 report_code=report,
                 dry_run=False,
                 form_data=form_input,
-                file_name=f'/Users/cwcstaff/Library/CloudStorage/GoogleDrive-data@cwclosangeles.org/Shared drives/Data & Analytics/Source Docs/Exports and Downloads/CALPADS/For Tableau/{school} - {report}.csv',
+                file_name=f'/tmp/{school} - {report}.csv',
                 download_format='csv'
 
             )
 
+            storage_client = storage.Client('lofty-hearth-422200-e9')
+            bucket = storage_client.bucket('calpads')
+            blob = bucket.blob(f'{school} - {report}.csv')
+
+            blob.upload_from_filename(f'/tmp/{school} - {report}.csv')
+
 if __name__ == '__main__':
-    handler()
+    handler(0)
