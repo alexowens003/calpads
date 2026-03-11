@@ -1,4 +1,4 @@
-#import calpads
+import calpads
 
 from google.cloud import storage
 
