@@ -291,7 +291,7 @@ class CALPADSClient:
         return safe_json_load(response)
 
     def get_sped_history(self, ssid):
-        """Returns a JSON object with the Special Education (SPED) history for the provided SSID
+        """Returns a JSON object with the Student Special Education Archive (SPED) history for the provided SSID
 
         Args:
             ssid (int, str): the 10 digit CALPADS Statewide Student Identifier
@@ -303,8 +303,30 @@ class CALPADSClient:
         response = self.session.get(urljoin(self.host, f'/Student/{ssid}/SPED?format=JSON'))
         return safe_json_load(response)
 
+    def get_serv_history(self, ssid):
+        """Returns a JSON object with the Special Education Services (SERV) history for the provided SSID
+        Args:
+            ssid (int, str): the 10 digit CALPADS Statewide Student Identifier
+        Returns:
+            a JSON object with a Data key and a total record count key (the name of this key can vary).
+            Expected data is under Data as a List where each item is a "row" of data
+        """
+        response = self.session.get(urljoin(self.host, f'/Student/{ssid}/SERV?format=JSON'))
+        return safe_json_load(response)
+
+    def get_swds_history(self, ssid):
+        """Returns a JSON object with the Students with Disabilities Status (SWDS) history for the provided SSID
+        Args:
+            ssid (int, str): the 10 digit CALPADS Statewide Student Identifier
+        Returns:
+            a JSON object with a Data key and a total record count key (the name of this key can vary).
+            Expected data is under Data as a List where each item is a "row" of data
+        """
+        response = self.session.get(urljoin(self.host, f'/Student/{ssid}/SWDS?format=JSON'))
+        return safe_json_load(response)
+
     def get_ssrv_history(self, ssid):
-        """Returns a JSON object with the Student Services (SSRV) history for the provided SSID
+        """Returns a JSON object with the Student Special Education Services Archive (SSRV) history for the provided SSID
 
         Args:
             ssid (int, str): the 10 digit CALPADS Statewide Student Identifier
@@ -314,6 +336,17 @@ class CALPADSClient:
             Expected data is under Data as a List where each item is a "row" of data
         """
         response = self.session.get(urljoin(self.host, f'/Student/{ssid}/SSRV?format=JSON'))
+        return safe_json_load(response)
+
+    def get_meet_history(self, ssid):
+        """Returns a JSON object with the Special Education Meetings (MEET) history for the provided SSID
+        Args:
+            ssid (int, str): the 10 digit CALPADS Statewide Student Identifier
+        Returns:
+            a JSON object with a Data key and a total record count key (the name of this key can vary).
+            Expected data is under Data as a List where each item is a "row" of data
+        """
+        response = self.session.get(urljoin(self.host, f'/Student/{ssid}/MEET?format=JSON'))
         return safe_json_load(response)
 
     def get_psts_history(self, ssid):
@@ -327,6 +360,17 @@ class CALPADSClient:
             Expected data is under Data as a List where each item is a "row" of data
         """
         response = self.session.get(urljoin(self.host, f'/Student/{ssid}/PSTS?format=JSON'))
+        return safe_json_load(response)
+
+    def get_plan_history(self, ssid):
+        """Returns a JSON object with the Special Education Plans (PLAN) history for the provided SSID
+        Args:
+            ssid (int, str): the 10 digit CALPADS Statewide Student Identifier
+        Returns:
+            a JSON object with a Data key and a total record count key (the name of this key can vary).
+            Expected data is under Data as a List where each item is a "row" of data
+        """
+        response = self.session.get(urljoin(self.host, f'/Student/{ssid}/PLAN?format=JSON'))
         return safe_json_load(response)
 
     def get_requested_extracts(self, lea_code):
@@ -380,7 +424,7 @@ class CALPADSClient:
         return safe_json_load(response)
 
     def download_report(self, lea_code, report_code, file_name=None, is_snapshot=False,
-                        download_format='CSV', form_data=None, dry_run=False):
+                        download_format='CSV', form_data=None, dry_run=False, url_override=None):
         """Download CALPADS ODS or Snapshot Reports
 
         Args:
@@ -398,6 +442,8 @@ class CALPADSClient:
                 form need to be provided. To see list of valid values, set dry_run=True.
             dry_run (bool): when False, it downloads the report. When True, it doesn't download the report and instead
                 returns a dict with the form fields and their expected inputs.
+            url_override (str): optional parameter to override _get_report_link() method with hardcoded url. Used for
+                when a report url is not included on the ODS webpage.
 
         Returns:
             bool: True for a successful download of report, else False.
@@ -412,7 +458,10 @@ class CALPADSClient:
             file_name = 'data'
         with self.session as session:
             self._select_lea(lea_code)
-            report_url = self._get_report_link(report_code.lower(), is_snapshot)
+            if url_override is None:
+                report_url = self._get_report_link(report_code.lower(), is_snapshot)
+            else:
+                report_url = url_override
             if report_url:
                 session.get(report_url)
             else:
